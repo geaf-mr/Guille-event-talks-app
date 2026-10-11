@@ -6,12 +6,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State
     let allUpdates = [];
+    let currentFilteredUpdates = [];
     let selectedUpdateId = null;
     let currentCategory = 'ALL';
     let searchQuery = '';
     let isFetching = false;
 
     // DOM Elements
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIconSun = document.getElementById('themeIconSun');
+    const themeIconMoon = document.getElementById('themeIconMoon');
+    const themeToggleLabel = document.getElementById('themeToggleLabel');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
     const refreshBtn = document.getElementById('refreshBtn');
     const refreshBtnLabel = document.getElementById('refreshBtnLabel');
     const btnSpinner = document.getElementById('btnSpinner');
@@ -66,6 +72,36 @@ document.addEventListener('DOMContentLoaded', () => {
         toastTimeout = setTimeout(() => {
             toast.classList.remove('show');
         }, 2800);
+    }
+
+    // Theme Toggle (Dark / Light Mode)
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            if (themeIconSun) themeIconSun.style.display = 'none';
+            if (themeIconMoon) themeIconMoon.style.display = 'inline-block';
+            if (themeToggleLabel) themeToggleLabel.textContent = 'Claro';
+            if (themeToggleBtn) themeToggleBtn.title = 'Cambiar a modo claro';
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            if (themeIconSun) themeIconSun.style.display = 'inline-block';
+            if (themeIconMoon) themeIconMoon.style.display = 'none';
+            if (themeToggleLabel) themeToggleLabel.textContent = 'Oscuro';
+            if (themeToggleBtn) themeToggleBtn.title = 'Cambiar a modo oscuro';
+        }
+    }
+
+    const savedTheme = localStorage.getItem('bq_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(savedTheme);
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const isCurrentDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const nextTheme = isCurrentDark ? 'light' : 'dark';
+            applyTheme(nextTheme);
+            localStorage.setItem('bq_theme', nextTheme);
+            showToast(nextTheme === 'dark' ? 'Modo oscuro activado' : 'Modo claro activado');
+        });
     }
 
     // Set Refresh Button Loading State
@@ -202,6 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         });
 
+        currentFilteredUpdates = filtered;
+
         // Update stats
         statsBadge.textContent = `Showing ${filtered.length} of ${allUpdates.length} updates`;
 
@@ -254,12 +292,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </svg>
                             Official Docs
                         </a>
-                        <button class="link-btn" data-action="copy-summary" data-id="${item.id}" title="Copy summary to clipboard">
+                        <button class="link-btn copy-card-btn" data-action="copy-card" data-id="${item.id}" title="Copiar al portapapeles">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                             </svg>
-                            Copy Text
+                            <span class="copy-card-label">Copiar al portapapeles</span>
                         </button>
                     </div>
                     <button class="btn btn-tweet" data-action="tweet-card" data-id="${item.id}">
@@ -275,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.addEventListener('click', (e) => {
                 const tweetBtn = e.target.closest('[data-action="tweet-card"]');
                 const selectBtn = e.target.closest('[data-action="toggle-select"]');
-                const copyBtn = e.target.closest('[data-action="copy-summary"]');
+                const copyBtn = e.target.closest('[data-action="copy-card"]');
                 const anchor = e.target.closest('a');
 
                 if (anchor) return; // Allow normal link navigation
@@ -289,8 +327,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     toggleSelect(item.id);
                 } else if (copyBtn) {
                     e.stopPropagation();
-                    navigator.clipboard.writeText(item.plain_text).then(() => {
-                        showToast('Update text copied to clipboard!');
+                    const formattedText = `[${item.category}] ${item.date}\n${item.plain_text}\n${item.link}`;
+                    navigator.clipboard.writeText(formattedText).then(() => {
+                        const label = copyBtn.querySelector('.copy-card-label');
+                        if (label) {
+                            const originalLabel = label.textContent;
+                            label.textContent = '¡Copiado!';
+                            copyBtn.classList.add('copied');
+                            setTimeout(() => {
+                                label.textContent = originalLabel;
+                                copyBtn.classList.remove('copied');
+                            }, 2000);
+                        }
+                        showToast('Nota copiada al portapapeles');
+                    }).catch(err => {
+                        console.error('Clipboard error:', err);
+                        showToast('Error al copiar al portapapeles');
                     });
                 } else {
                     // Clicking on card selects it
@@ -485,6 +537,53 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActivePill();
         applyFilterAndRender();
     });
+
+    // Export to CSV
+    function exportToCsv() {
+        const listToExport = (currentFilteredUpdates && currentFilteredUpdates.length > 0) ? currentFilteredUpdates : allUpdates;
+        if (!listToExport || listToExport.length === 0) {
+            showToast('No hay notas disponibles para exportar.');
+            return;
+        }
+
+        const headers = ['ID', 'Fecha', 'Categoria', 'Descripcion', 'Enlace Oficial', 'Borrador Tweet'];
+        const rows = listToExport.map(item => [
+            item.id || '',
+            item.date || '',
+            item.category || '',
+            (item.plain_text || '').replace(/\r?\n|\r/g, ' '),
+            item.link || '',
+            (item.tweet_draft || '').replace(/\r?\n|\r/g, ' ')
+        ]);
+
+        const escapeCsvField = (val) => {
+            const stringVal = String(val);
+            return `"${stringVal.replace(/"/g, '""')}"`;
+        };
+
+        const csvContent = [
+            headers.map(escapeCsvField).join(','),
+            ...rows.map(row => row.map(escapeCsvField).join(','))
+        ].join('\r\n');
+
+        // Prepend UTF-8 BOM (\uFEFF) for Microsoft Excel compatibility
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const downloadAnchor = document.createElement('a');
+        const today = new Date().toISOString().split('T')[0];
+        downloadAnchor.href = url;
+        downloadAnchor.download = `bigquery-release-notes-${today}.csv`;
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        document.body.removeChild(downloadAnchor);
+        URL.revokeObjectURL(url);
+
+        showToast(`Exportado a CSV exitosamente (${listToExport.length} notas)`);
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', exportToCsv);
+    }
 
     function escapeHtml(text) {
         if (!text) return '';

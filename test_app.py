@@ -15,6 +15,8 @@ class BigQueryAppTestCase(unittest.TestCase):
         self.assertIn('Refresh Notes', html)
         self.assertIn('btnSpinner', html)
         self.assertIn('tweetModal', html)
+        self.assertIn('themeToggleBtn', html)
+        self.assertIn('exportCsvBtn', html)
 
     def test_api_notes_endpoint(self):
         response = self.app.get('/api/notes')
