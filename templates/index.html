@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,7 @@
     <header class="app-header">
         <div class="container header-container">
             <div class="brand">
-                <div class="brand-icon">
+                <div class="brand-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/>
                         <circle cx="9" cy="6" r="2" fill="#4285f4" stroke="none"/>
@@ -22,14 +22,14 @@
                 </div>
                 <div>
                     <h1 class="brand-title">BigQuery Release Notes</h1>
-                    <p class="brand-subtitle">Live official feed from Google Cloud documentation</p>
+                    <p class="brand-subtitle">Feed oficial en vivo desde la documentación de Google Cloud</p>
                 </div>
             </div>
 
             <div class="header-actions">
-                <div class="feed-meta" id="feedMeta">
+                <div class="feed-meta" id="feedMeta" aria-live="polite">
                     <span class="meta-dot"></span>
-                    <span id="lastUpdatedText">Checking feed...</span>
+                    <span id="lastUpdatedText">Comprobando feed...</span>
                 </div>
                 <button id="themeToggleBtn" class="theme-toggle-btn" title="Alternar modo oscuro / claro" aria-label="Cambiar tema">
                     <svg id="themeIconSun" class="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -48,12 +48,12 @@
                     </svg>
                     <span id="themeToggleLabel">Oscuro</span>
                 </button>
-                <button id="refreshBtn" class="btn btn-primary" title="Refresh BigQuery Release Notes">
+                <button id="refreshBtn" class="btn btn-primary" title="Refresh Notes">
                     <span class="spinner" id="btnSpinner" aria-hidden="true"></span>
                     <svg class="refresh-icon" id="btnIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <span id="refreshBtnLabel">Refresh Notes</span>
+                    <span id="refreshBtnLabel">Actualizar Notas</span>
                 </button>
             </div>
         </div>
@@ -63,18 +63,19 @@
         <!-- Controls & Filters Section -->
         <section class="controls-panel">
             <div class="search-box">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <circle cx="11" cy="11" r="8"/>
                     <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-linecap="round"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Search release notes by keyword (e.g. Gemini, SQL, Preview, Partition)..." autocomplete="off">
-                <button id="clearSearchBtn" class="clear-btn" style="display: none;" title="Clear search">&times;</button>
+                <input type="text" id="searchInput" placeholder="Buscar notas por palabra clave (ej. Gemini, SQL, Partition)..." autocomplete="off" aria-label="Buscar notas">
+                <kbd class="search-kbd" title="Presiona '/' para buscar">/</kbd>
+                <button id="clearSearchBtn" class="clear-btn" style="display: none;" title="Limpiar búsqueda">&times;</button>
             </div>
 
             <div class="filter-row">
-                <div class="category-filters" id="categoryFilters">
+                <div class="category-filters" id="categoryFilters" role="toolbar" aria-label="Filtros de categoría">
                     <!-- Populated dynamically via JS -->
-                    <button class="pill active" data-category="ALL">All Updates</button>
+                    <button class="pill active" data-category="ALL">Todas las novedades</button>
                 </div>
                 <div class="filter-right-actions">
                     <button id="exportCsvBtn" class="btn btn-secondary btn-sm" title="Exportar notas de la versión a CSV">
@@ -85,23 +86,19 @@
                         </svg>
                         <span>Exportar a CSV</span>
                     </button>
-                    <div class="stats-badge" id="statsBadge">
-                        Loading updates...
+                    <div class="stats-badge" id="statsBadge" aria-live="polite">
+                        Cargando novedades...
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Status / Alerts -->
-        <div id="statusAlert" class="alert" style="display: none;"></div>
+        <div id="statusAlert" class="alert" style="display: none;" role="alert"></div>
 
         <!-- Release Notes Cards Grid -->
-        <section id="cardsContainer" class="cards-grid">
-            <!-- Dynamic Cards inserted here -->
-            <div class="loading-state">
-                <div class="spinner-large"></div>
-                <p>Fetching BigQuery release notes...</p>
-            </div>
+        <section id="cardsContainer" class="cards-grid" aria-label="Listado de actualizaciones">
+            <!-- Skeleton cards generated dynamically while loading -->
         </section>
 
         <!-- Empty State -->
@@ -110,9 +107,17 @@
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="8" y1="12" x2="16" y2="12"/>
             </svg>
-            <h3>No updates match your search</h3>
-            <p>Try searching for different keywords or reset category filters.</p>
-            <button id="resetFiltersBtn" class="btn btn-secondary">Reset Filters</button>
+            <h3 id="emptyStateTitle">No se encontraron novedades para tu búsqueda</h3>
+            <p id="emptyStateDesc">Prueba buscando otros términos o selecciona una sugerencia rápida:</p>
+            <div class="search-suggestions" id="searchSuggestions">
+                <span>Sugerencias:</span>
+                <button class="suggestion-chip" data-search="Gemini">Gemini</button>
+                <button class="suggestion-chip" data-search="SQL">SQL</button>
+                <button class="suggestion-chip" data-search="Vector">Vector</button>
+                <button class="suggestion-chip" data-search="Partition">Partition</button>
+                <button class="suggestion-chip" data-search="Storage">Storage</button>
+            </div>
+            <button id="resetFiltersBtn" class="btn btn-secondary">Restablecer Filtros</button>
         </div>
     </main>
 
@@ -120,16 +125,16 @@
     <div id="selectionBar" class="selection-bar">
         <div class="container selection-bar-inner">
             <div class="selection-info">
-                <span class="selection-count" id="selectionCount">1 update selected</span>
+                <span class="selection-count" id="selectionCount">1 novedad seleccionada</span>
                 <span class="selection-title-preview" id="selectionTitlePreview"></span>
             </div>
             <div class="selection-actions">
-                <button id="clearSelectionBtn" class="btn btn-text">Cancel</button>
+                <button id="clearSelectionBtn" class="btn btn-text">Cancelar</button>
                 <button id="tweetSelectedBtn" class="btn btn-tweet">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                     </svg>
-                    <span>Tweet This Update</span>
+                    <span>Twittear Novedad</span>
                 </button>
             </div>
         </div>
@@ -146,11 +151,11 @@
                         </svg>
                     </div>
                     <div>
-                        <h2 id="modalTitle" class="modal-title">Share Update on X (Twitter)</h2>
-                        <p class="modal-subtitle">Review or customize your post before sharing</p>
+                        <h2 id="modalTitle" class="modal-title">Compartir Novedad en X (Twitter)</h2>
+                        <p class="modal-subtitle">Revisa o personaliza tu publicación antes de compartir</p>
                     </div>
                 </div>
-                <button id="closeModalBtn" class="modal-close-btn" title="Close modal">&times;</button>
+                <button id="closeModalBtn" class="modal-close-btn" title="Cerrar ventana">&times;</button>
             </div>
 
             <div class="modal-body">
@@ -159,15 +164,15 @@
                 </div>
 
                 <div class="tweet-editor-group">
-                    <label for="tweetTextArea" class="editor-label">
-                        <span>Tweet Draft</span>
-                        <span id="charCountBadge" class="char-badge">0 / 280</span>
-                    </label>
-                    <textarea id="tweetTextArea" rows="6" placeholder="Write your tweet..."></textarea>
+                    <div class="editor-header-row">
+                        <label for="tweetTextArea" class="editor-label">Borrador de la Publicación</label>
+                        <span id="charCountBadge" class="char-badge" title="Límite oficial de Twitter: URLs contabilizadas como 23 caracteres">0 / 280</span>
+                    </div>
+                    <textarea id="tweetTextArea" rows="6" placeholder="Escribe tu publicación..."></textarea>
                 </div>
 
                 <div class="tweet-meta-info">
-                    <small>💡 Includes the official Google Cloud documentation link and relevant hashtags.</small>
+                    <small>💡 Incluye el enlace oficial de Google Cloud y hashtags temáticos recomendados.</small>
                 </div>
             </div>
 
@@ -177,23 +182,30 @@
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                     </svg>
-                    <span id="copyBtnLabel">Copy Text</span>
+                    <span id="copyBtnLabel">Copiar Texto</span>
                 </button>
                 <div class="modal-primary-actions">
-                    <button id="cancelModalBtn" class="btn btn-text">Cancel</button>
+                    <button id="cancelModalBtn" class="btn btn-text">Cancelar</button>
                     <button id="launchTweetBtn" class="btn btn-tweet">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                         </svg>
-                        <span>Post on X</span>
+                        <span>Publicar en X</span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Scroll to Top Floating Button -->
+    <button id="scrollToTopBtn" class="scroll-to-top" title="Volver arriba" aria-label="Volver arriba">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="18 15 12 9 6 15"/>
+        </svg>
+    </button>
+
     <!-- Notification Toast -->
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

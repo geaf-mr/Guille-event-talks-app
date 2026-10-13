@@ -972,3 +972,214 @@ body {
         flex: 1;
     }
 }
+
+/* Search Keyboard Hint */
+.search-kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 0.72rem;
+    font-family: inherit;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-muted);
+    background-color: var(--border-subtle);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+    margin-right: 4px;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Search Highlighting */
+.search-highlight {
+    background-color: #fff3cd;
+    color: #664d03;
+    padding: 1px 3px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+:root[data-theme="dark"] .search-highlight {
+    background-color: #5c4813;
+    color: #ffe69c;
+}
+
+/* Search Suggestions in Empty State */
+.search-suggestions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.suggestion-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    color: var(--primary);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.suggestion-chip:hover {
+    background: var(--primary-subtle);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* Skeleton Screen Loaders */
+.skeleton-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.skeleton-line {
+    background: linear-gradient(90deg, var(--border-subtle) 25%, var(--border) 37%, var(--border-subtle) 63%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-tag {
+    width: 80px;
+    height: 20px;
+}
+
+.skeleton-date {
+    width: 120px;
+    height: 18px;
+}
+
+.skeleton-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.skeleton-text-lg {
+    width: 90%;
+    height: 16px;
+}
+
+.skeleton-text-md {
+    width: 75%;
+    height: 16px;
+}
+
+.skeleton-text-sm {
+    width: 50%;
+    height: 16px;
+}
+
+.skeleton-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.skeleton-btn {
+    width: 100px;
+    height: 28px;
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+/* Favorite Button in Cards */
+.favorite-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.favorite-btn:hover {
+    color: #fbbc05;
+    background: var(--border-subtle);
+    transform: scale(1.1);
+}
+
+.favorite-btn.favorited {
+    color: #fbbc05;
+}
+
+.card-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Scroll to Top Floating Button */
+.scroll-to-top {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 95;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+}
+
+.scroll-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.scroll-to-top:hover {
+    background-color: var(--border-subtle);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* A11y Focus Rings */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
